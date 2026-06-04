@@ -1,0 +1,37 @@
+\begin{table}[H]
+    \centering
+    \caption{Estimativas Pontuais e IC (95\%) de todas as métricas — Cenário A (Rótulos a Priori).}
+    \label{tab:resultados_A (Rótulos a Priori)}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{@{}lcccc@{}}
+        \toprule
+        \textbf{Classificador} & \textbf{Erro} & \textbf{Precisão (macro)} & \textbf{Recall (macro)} & \textbf{F-measure (macro)} \\
+        \midrule
+        Bayes Gaussiano   & 0.112 [0.106, 0.118] & 0.881 [0.875, 0.888] & 0.891 [0.886, 0.897] & 0.881 [0.875, 0.888] \\
+        $k$-NN Bayesiano  & 0.092 [0.087, 0.097] & 0.928 [0.923, 0.933] & 0.878 [0.871, 0.885] & 0.893 [0.887, 0.899] \\
+        Parzen            & 0.127 [0.121, 0.133] & 0.902 [0.897, 0.907] & 0.831 [0.823, 0.838] & 0.848 [0.840, 0.855] \\
+        Regressão Log.    & 0.121 [0.116, 0.127] & 0.892 [0.886, 0.898] & 0.848 [0.840, 0.855] & 0.860 [0.853, 0.867] \\
+        Voto Majoritário  & 0.064 [0.060, 0.069] & 0.943 [0.938, 0.947] & 0.920 [0.914, 0.926] & 0.928 [0.922, 0.933] \\
+        \bottomrule
+    \end{tabular}
+    }
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Estimativas Pontuais e IC (95\%) de todas as métricas — Cenário B (Clusters).}
+    \label{tab:resultados_B (Clusters)}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{@{}lcccc@{}}
+        \toprule
+        \textbf{Classificador} & \textbf{Erro} & \textbf{Precisão (macro)} & \textbf{Recall (macro)} & \textbf{F-measure (macro)} \\
+        \midrule
+        Bayes Gaussiano   & 0.244 [0.236, 0.252] & 0.796 [0.781, 0.811] & 0.654 [0.642, 0.666] & 0.683 [0.670, 0.696] \\
+        $k$-NN Bayesiano  & 0.071 [0.067, 0.076] & 0.943 [0.938, 0.948] & 0.920 [0.913, 0.926] & 0.923 [0.917, 0.929] \\
+        Parzen            & 0.068 [0.063, 0.073] & 0.953 [0.947, 0.958] & 0.916 [0.909, 0.924] & 0.926 [0.919, 0.932] \\
+        Regressão Log.    & 0.040 [0.037, 0.044] & 0.964 [0.960, 0.968] & 0.960 [0.956, 0.965] & 0.959 [0.954, 0.963] \\
+        Voto Majoritário  & 0.045 [0.041, 0.049] & 0.966 [0.962, 0.971] & 0.935 [0.928, 0.942] & 0.944 [0.938, 0.950] \\
+        \bottomrule
+    \end{tabular}
+    }
+\end{table}
