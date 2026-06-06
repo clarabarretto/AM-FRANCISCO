@@ -50,7 +50,7 @@ O código foi implementado com extrema fidelidade às equações de atualizaçã
 \subsection{Escolha do Número Ótimo de Clusters ($c^*$)}
 Para determinar a partição ótima e o número de clusters $c^*$, o algoritmo foi executado para valores de $c \in \{2, 3, 4, 5, 6\}$. Devido à natureza estocástica da inicialização de Forgy, cada $c$ foi testado com 100 execuções independentes, capturando a partição que minimizou a função objetivo $J$ para aquele $c$.
 
-A definição estrita de $c^*$ baseou-se na maximização do \textbf{Índice de Silhueta}. Como a inicialização é aleatória, a estrutura do conjunto de dados se mostrou altamente instável para partições muito granulares, forçando o algoritmo a escolher a partição mais macroscópica. Conforme exibido na Figura \ref{fig:silhueta}, o maior valor de Silhueta ocorreu inequivocamente para $c^* = 2$.
+A definição de $c^*$ baseou-se na maximização do \textbf{Índice de Silhueta}. Como a inicialização é aleatória, a estrutura do conjunto de dados se mostrou altamente instável para partições muito granulares, forçando o algoritmo a escolher a partição mais macroscópica. Conforme exibido na Figura \ref{fig:silhueta}, o maior valor de Silhueta ocorreu inequivocamente para $c^* = 2$.
 
 \begin{figure}[H]
     \centering
@@ -163,7 +163,7 @@ No Cenário B, os modelos não-paramétricos saltam rapidamente para pontuaçõe
 \newpage
 \section{Sugerindo Novas Melhorias (Abordagens Customizadas)}
 
-Ao observarmos as limitações matemáticas intrínsecas à implementação puramente estrita dos algoritmos clássicos exigidos, nossa equipe desenvolveu e validou duas melhorias arquiteturais cruciais, as quais demonstram superar substancialmente os problemas encontrados nas seções anteriores.
+Ao observarmos as limitações matemáticas intrínsecas à implementação dos algoritmos clássicos exigidos, nossa equipe desenvolveu e validou duas melhorias arquiteturais cruciais, as quais demonstram superar substancialmente os problemas encontrados nas seções anteriores.
 
 \subsection{Resiliência contra Clusters Vazios no KCM-K-GH}
 Na formulação pura do agrupamento por kernel, inicializações aleatórias (Forgy) em espaços esparsos frequentemente induzem o colapso de protótipos que deixam de atrair amostras. Para evitar que o algoritmo reduza a granularidade da partição (como observado na Seção 1, onde fomos forçados ao $c^*=2$), propomos uma \textbf{heurística de realocação dinâmica}.
@@ -201,7 +201,7 @@ A matriz de confusão acima evidencia o sucesso desta inovação: a classe \text
 \end{figure}
 
 \subsection{Regularização de Covariância de Ledoit-Wolf}
-No Cenário B da Questão 2 estrita, o classificador Bayesiano Gaussiano com Máxima Verossimilhança ruiu (F1 abaixo de 0.4 na curva de aprendizado inicial) devido à má-condição e singularidade de suas matrizes de covariância em cenários desbalanceados.
+No Cenário B da Questão 2, o classificador Bayesiano Gaussiano com Máxima Verossimilhança ruiu (F1 abaixo de 0.4 na curva de aprendizado inicial) devido à má-condição e singularidade de suas matrizes de covariância em cenários desbalanceados.
 
 Para resolver o problema inerente à inversão de matrizes empíricas $p \times p$ quando $N < p$, nós incorporamos o consagrado estimador analítico de encolhimento (\textit{Shrinkage}) proposto por Ledoit e Wolf \cite{ledoit_wolf}. Este estimador realiza uma ponderação convexa ótima entre a matriz de covariância amostral (sem restrições) e a matriz identidade, garantindo um número de condicionamento finito sem necessidade de sintonização via validação cruzada.
 
