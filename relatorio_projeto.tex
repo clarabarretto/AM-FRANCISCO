@@ -97,7 +97,7 @@ A implementação exigiu alto rigor estatístico e obediência ao critério baye
     
     \item \textbf{Classificador de Parzen}: Modelagem não paramétrica com Função de Kernel Gaussiano simétrica contínua (KDE).
     
-    \item \textbf{Regressão Logística e Comitê Majority Voting}: Aplicados conforme a premissa discriminativa padrão e montagem do \textit{Ensemble} agregador.
+    \item \textbf{Regressão Logística e Comitê Majority Voting}: A Regressão Logística foi aplicada conforme sua premissa discriminativa padrão. Para agregar as predições dos quatro modelos base em um único \textit{Ensemble}, empregamos a regra do Voto Majoritário (\textit{Majority Voting}). Conforme teorizado matematicamente por Kittler et al. \cite{kittler1998}, o Voto Majoritário consolida-se sob a ótica Bayesiana como uma simplificação robusta e pragmática da Regra da Soma. Sob a suposição de erros independentes e invariância de fronteiras, este mecanismo minimiza a variância dos erros preditivos e favorece uma generalização superior sem adicionar complexidade computacional.
 \end{itemize}
 
 \subsection{Metodologia Experimental e Busca de Hiperparâmetros}
