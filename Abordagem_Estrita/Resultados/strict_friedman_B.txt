@@ -1,0 +1,20 @@
+=== Friedman & Nemenyi Test - Cenário B ===
+
+--- Métrica: ERROR ---
+p-valor Friedman: 7.3050e-159
+CD (Nemenyi): 0.3522
+Rank médio BayesGauss: 2.1900
+Rank médio kNN: 3.3017
+Rank médio Parzen: 4.5200
+Rank médio LogReg: 2.0733
+Rank médio Voting: 2.9150
+
+--- Métrica: F1 ---
+p-valor Friedman: 3.0003e-160
+CD (Nemenyi): 0.3522
+Rank médio BayesGauss: 2.1900
+Rank médio kNN: 3.2833
+Rank médio Parzen: 4.5383
+Rank médio LogReg: 2.0733
+Rank médio Voting: 2.9150
+
