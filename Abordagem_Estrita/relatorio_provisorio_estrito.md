@@ -20,6 +20,11 @@ O gráfico PCA abaixo demonstra que a partição $c=2$ divide o conjunto de form
 
 Apesar de a divisão em dois grupos parecer simplista, o Índice de Rand Ajustado (**ARI**) medido contra as classes a priori reais ($Good/Bad$) atingiu o valor de **0,24**. É digno de nota que este resultado superou o ARI de 0,20 obtido no estudo comparativo dos colegas que dividiram em 4 clusters.
 
+### 1.3 Matriz de Confusão ($c^* = 2$)
+Nesta matriz de confusão comparando o resultado do agrupamento ($c=2$) com a realidade das classes ($Bad=0, Good=1$), vemos que a separação é razoável, mas mistura bastante coisa. O cluster 1 foca mais em amostras *Good*, enquanto o cluster 2 está extremamente balanceado entre *Good* e *Bad*. 
+
+![Matriz de Confusão](Resultados/strict_cm_c2.png)
+
 ---
 
 ## 2. Questão 2: Comparação de Classificadores Clássicos
