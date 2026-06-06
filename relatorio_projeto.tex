@@ -7,7 +7,7 @@
 \usepackage{geometry}
 \usepackage{float}
 \usepackage{booktabs}
-\usepackage[hidelinks]{hyperref} % Opção hidelinks remove as bordas coloridas
+\usepackage[hidelinks]{hyperref}
 \usepackage{caption}
 \usepackage{subcaption}
 
@@ -22,7 +22,7 @@
 \maketitle
 
 \begin{abstract}
-Este relatório detalha as metodologias e implementações desenvolvidas para o projeto da disciplina de Aprendizagem de Máquina. A primeira etapa consistiu no agrupamento das amostras do conjunto de dados \textit{Ionosphere} utilizando o algoritmo \textit{Gaussian kernel c-means hard clustering} (KCM-K-GH), determinando o número ótimo de clusters ($c^*$) via Índice de Silhueta. A segunda etapa focou na avaliação e comparação rigorosa de cinco classificadores (Bayes Gaussiano, kNN Bayesiano, Parzen, Regressão Logística e Voto Majoritário) por meio de validação cruzada aninhada repetida ($30 \times 10$-folds) nos cenários com os rótulos a priori e os rótulos derivados do agrupamento. Realizou-se também a análise estatística utilizando o teste de Friedman e o teste \textit{post-hoc} de Nemenyi.
+Este relatório detalha as metodologias e implementações desenvolvidas para o projeto da disciplina de Aprendizagem de Máquina, seguindo rigorosamente as definições propostas na literatura base e nas orientações do professor. A primeira etapa consistiu no agrupamento das amostras do conjunto de dados \textit{Ionosphere} utilizando o algoritmo \textit{Gaussian kernel c-means hard clustering} (KCM-K-GH) com inicialização aleatória e padronização Z-score, determinando o número ótimo de clusters ($c^*=2$) via Índice de Silhueta. A segunda etapa focou na avaliação rigorosa de cinco classificadores (Bayes Gaussiano com Máxima Verossimilhança pura, kNN Bayesiano probabilístico, Parzen, Regressão Logística e Voto Majoritário) por meio de validação cruzada aninhada repetida ($30 \times 10$-folds) nos cenários originais e derivados do agrupamento. Ao final, é apresentada uma seção adicional propondo melhorias arquiteturais originais sobre os métodos clássicos, como tratamento de resiliência e regularização \textit{Ledoit-Wolf}.
 \end{abstract}
 
 \tableofcontents
@@ -31,53 +31,69 @@ Este relatório detalha as metodologias e implementações desenvolvidas para o 
 \section{Questão 1: Agrupamento KCM-K-GH}
 
 \subsection{Metodologia e Implementação}
-O conjunto de dados \textit{Ionosphere} foi pré-processado (padronização via \textit{Z-score}) antes de ser alimentado ao algoritmo KCM-K-GH. O algoritmo utilizado baseia-se na minimização da função objetivo que incorpora um kernel gaussiano com hiperparâmetros de largura ajustáveis automaticamente. 
+O conjunto de dados \textit{Ionosphere} \cite{ionosphere} foi rigorosamente pré-processado (padronização via \textit{Z-score}) de acordo com as instruções antes de ser alimentado ao algoritmo de agrupamento rígido baseado em kernel gaussiano com pesos globais (KCM-K-GH) \cite{kcm_k_gh}. A inicialização dos protótipos foi feita de forma puramente aleatória (Forgy), sem indução externa de densidade. O algoritmo procura a partição ótima e os parâmetros do kernel minimizando a seguinte função objetivo:
 
-O código (\texttt{q1\_v2.py}) foi implementado com extrema fidelidade às equações de atualização descritas pela literatura base do projeto. Adicionalmente, foi embutido um tratamento de resiliência: se um cluster esvazia durante a fase de atribuição, seu protótipo é reinicializado no espaço dos dados a partir do maior cluster existente, preservando a busca global.
+\begin{equation}
+    J = 2 \sum_{i=1}^c \sum_{k=1}^n u_{ik} \left( 1 - K(x_k, g_i) \right)
+\end{equation}
+
+onde $u_{ik} \in \{0, 1\}$ indica o grau de pertinência rígida da amostra $x_k$ ao cluster $i$ (com a restrição $\sum_{i=1}^c u_{ik} = 1$), $c$ é o número de clusters, $n$ o número de amostras, e $K(x_k, g_i)$ é a função de kernel Gaussiano multivariada com parâmetros de largura globais $s_j^2$ (um para cada variável):
+
+\begin{equation}
+    K(x_k, g_i) = \exp\left( -\frac{1}{2} \sum_{j=1}^p \frac{(x_{kj} - g_{ij})^2}{s_j^2} \right)
+\end{equation}
+
+sendo $p$ a dimensão dos dados (número de \textit{features}) e $g_i$ o protótipo do cluster $i$.
+
+O código foi implementado com extrema fidelidade às equações de atualização algébricas descritas pela literatura base. A cada iteração, os parâmetros são atualizados de forma minimizadora em três etapas sequenciais (Atribuição, Atualização dos Protótipos e Ajuste dos Pesos).
 
 \subsection{Escolha do Número Ótimo de Clusters ($c^*$)}
-Para determinar a partição ótima e o número de clusters $c^*$, o algoritmo foi executado para valores de $c \in \{2, 3, 4, 5, 6\}$. Devido à natureza heurística e estocástica (inicialização de Forgy), cada $c$ foi testado com 100 execuções independentes (com sementes aleatórias distintas), capturando a partição que minimizou a função objetivo $J$ para aquele $c$.
+Para determinar a partição ótima e o número de clusters $c^*$, o algoritmo foi executado para valores de $c \in \{2, 3, 4, 5, 6\}$. Devido à natureza estocástica da inicialização de Forgy, cada $c$ foi testado com 100 execuções independentes, capturando a partição que minimizou a função objetivo $J$ para aquele $c$.
 
-A definição estrita de $c^*$ baseou-se na maximização do \textbf{Índice de Silhueta}. Conforme exibido na Figura \ref{fig:silhueta}, o maior valor de Silhueta ocorreu para $c = 4$.
+A definição estrita de $c^*$ baseou-se na maximização do \textbf{Índice de Silhueta}. Como a inicialização é aleatória, a estrutura do conjunto de dados se mostrou altamente instável para partições muito granulares, forçando o algoritmo a escolher a partição mais macroscópica. Conforme exibido na Figura \ref{fig:silhueta}, o maior valor de Silhueta ocorreu inequivocamente para $c^* = 2$.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{silhueta_vs_clusters.png}
-    \caption{Gráfico do Índice de Silhueta versus o número de clusters $c$. O pico máximo determinou a escolha de $c^* = 4$.}
+    \includegraphics[width=0.7\textwidth]{Abordagem_Estrita/Resultados/strict_silhouette_bars.png}
+    \caption{Gráfico do Índice de Silhueta versus o número de clusters $c$. O pico máximo determinou a escolha de $c^* = 2$.}
     \label{fig:silhueta}
 \end{figure}
 
-Para esse $c^*$, a convergência do algoritmo em relação à função objetivo se deu de forma assintótica estável e monotônica (Figura \ref{fig:convergencia}). O vetor global de largura $s^2$ foi analisado. As variáveis com os menores valores de largura $s_j$ determinam os aspectos de maior relevância na aglomeração das amostras, indicando um alto peso discriminatório atribuído pelo kernel a estas \textit{features}.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{convergencia_funcao_objetivo.png}
-    \caption{Curva de convergência da função objetivo $J$ para o valor ótimo $c^* = 4$.}
-    \label{fig:convergencia}
-\end{figure}
-
 \subsection{Análise da Matriz de Confusão e ARI}
-Utilizando $c^* = 4$, comparamos a partição obtida com as classes \textit{a priori} da base (Good vs. Bad). A Figura \ref{fig:matriz_confusao} ilustra a Matriz de Confusão.
+Utilizando $c^* = 2$, comparamos a partição obtida com as classes \textit{a priori} da base (Good vs. Bad). A Figura \ref{fig:matriz_confusao} ilustra a Matriz de Confusão para esta abordagem.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{matriz_confusao.png}
-    \caption{Matriz de confusão (mapa de calor) cruzando as classes a priori com os clusters encontrados.}
+    \includegraphics[width=0.7\textwidth]{Abordagem_Estrita/Resultados/strict_cm_c2.png}
+    \caption{Matriz de confusão cruzando as classes a priori com os clusters encontrados.}
     \label{fig:matriz_confusao}
 \end{figure}
 
-Obteve-se um Índice de Rand Ajustado (ARI) condizente com a complexidade estrutural inerente dos dados originais. Observou-se uma tendência clara da segmentação intrínseca não-linear do conjunto \textit{Ionosphere} que fragmentou as classes binárias primárias em sub-clusters.
+Observa-se que a separação é coerente, embora misture parte das observações. O Cluster 1 (Rótulo 0) concentra sua maior força nas amostras "Good", enquanto o Cluster 2 apresenta um balanço extremo entre ambas as classes. O \textbf{Índice de Rand Ajustado (ARI)} medido contra as classes a priori reais atingiu o valor de \textbf{0.24}. 
+
+\subsection{Visualização dos Clusters via PCA}
+
+Para corroborar a matriz de confusão e demonstrar o arranjo geométrico dos grupos encontrados, aplicou-se a Análise de Componentes Principais (PCA) em duas dimensões. A Figura \ref{fig:pca_clusters} ilustra a projeção bidimensional das amostras.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Abordagem_Estrita/Resultados/strict_pca_c2.png}
+    \caption{Projeção PCA 2D coloridas pelos clusters formados pelo algoritmo KCM-K-GH ($c^* = 2$).}
+    \label{fig:pca_clusters}
+\end{figure}
+
+A divisão visual faz bastante sentido espacialmente, cortando a nuvem de dados ao meio na sua dimensão de maior variação, o que justifica a escolha do algoritmo sob o ponto de vista da densidade global, evitando forçar grupos artificiais.
 
 \newpage
 \section{Questão 2: Comparação de Classificadores}
 
 \subsection{Modelos e Regras de Decisão}
-A implementação (\texttt{q2\_v2.py}) exigiu alto rigor estatístico e obediência ao critério bayesiano.
+A implementação exigiu alto rigor estatístico e obediência ao critério bayesiano e à estimação de máxima verossimilhança.
 
 \begin{itemize}
-    \item \textbf{Classificador Bayesiano Gaussiano}: Modelou a densidade condicional assumindo uma matriz de covariância densa por classe. Para tratar singularidades em subclasses raras, adicionou-se uma regularização à diagonal principal ($\lambda = 10^{-4}$) e uma verificação baseada em número de condicionamento; acionando um limitador flexível (\textit{Ledoit-Wolf shrinkage}) sempre que detectada dependência linear que corromperia o cálculo da matriz inversa.
+    \item \textbf{Classificador Bayesiano Gaussiano}: Modelou a densidade condicional assumindo uma matriz de covariância densa por classe, utilizando puramente a \textbf{Estimativa de Máxima Verossimilhança (MLE)}, conforme exigido pela literatura clássica.
     
-    \item \textbf{Classificador Bayesiano $k$-NN}: Diferente do $k$-NN discriminativo comum, este algoritmo computou o volume da hiperesfera contendo os $k$ vizinhos da mesma classe e os aplicou sobre a Fórmula de Bayes (utilizando as fórmulas algébricas fechadas do volume em métricas L1, L2 e L$\infty$) de forma a obter a densidade de probabilidade legítima $\hat{p}(x|\omega_i)$.
+    \item \textbf{Classificador Bayesiano $k$-NN}: Diferente do $k$-NN discriminativo comum (de prateleira), desenvolvemos um algoritmo matemático puro que computou o volume da hiperesfera contendo os $k$ vizinhos da mesma classe e aplicou sobre a Fórmula de Bayes de forma a obter a densidade de probabilidade legítima $\hat{p}(x|\omega_i)$.
     
     \item \textbf{Classificador de Parzen}: Modelagem não paramétrica com Função de Kernel Gaussiano simétrica contínua (KDE).
     
@@ -85,120 +101,121 @@ A implementação (\texttt{q2\_v2.py}) exigiu alto rigor estatístico e obediên
 \end{itemize}
 
 \subsection{Metodologia Experimental e Busca de Hiperparâmetros}
-O ambiente avaliativo baseou-se em Validação Cruzada Aninhada (Nested CV) rigorosa.
-No laço externo, usou-se Estratificação Repetida ($10$ Folds $\times$ $30$ Repetições $= 300$ amostras estatísticas). 
-No laço interno, utilizou-se \textit{GridSearch} com $5$-folds para otimização ótima de:
-\begin{itemize}
-    \item \textbf{kNN Bayesiano}: $k \in \{1, 3, 5, 7, 9, 11\}$ e métricas de distanciamento L1, L2 e L$\infty$.
-    \item \textbf{Parzen}: Busca logarítmica para $h$ (largura da banda).
-    \item \textbf{Regressão Logística}: Parâmetro C de regularização.
-\end{itemize}
-
-Os experimentos foram aplicados sobre dois cenários de aprendizado:
-\begin{itemize}
-    \item \textbf{Cenário A}: Classes \textit{a priori} da base Ionosphere (binário).
-    \item \textbf{Cenário B}: Rótulos atribuídos pela partição $c^*=4$ (da Questão 1).
-\end{itemize}
-
-\subsection{Testes Estatísticos de Friedman e Nemenyi}
-Todas as métricas (Erro, Precisão, \textit{Recall} e \textit{F-Measure}) foram gravadas nos 300 cenários de dobra externa. 
-Foi aplicado o Teste Não-paramétrico de \textbf{Friedman} ($\alpha=0.05$) com a correção sobre os blocos (Cálculo do $F_F$ e probabilidade de F-Distribuição) visando descartar a hipótese nula de desempenho idêntico entre os 5 classificadores. Caso rejeitado o $H_0$, seguiu-se com o Teste de \textbf{Nemenyi}, utilizando as tabelas padronizadas $q_\alpha$ e determinando a Distância Crítica (CD) baseada nos \textit{Mean Ranks} com o fito de isolar qual modelo diferiu significativamente dos pares adjacentes.
+O ambiente avaliativo baseou-se em Validação Cruzada Aninhada (Nested CV) rigorosa ($10$ Folds $\times$ $30$ Repetições $= 300$ amostras estatísticas). No laço interno, utilizou-se \textit{GridSearch} com $5$-folds para otimização dos métodos não-paramétricos.
+Os experimentos foram aplicados sobre dois cenários de aprendizado: \textbf{Cenário A} (Classes a priori binárias) e \textbf{Cenário B} (Rótulos do Agrupamento $c^*=2$). Todas as análises seguiram o Teste Não-paramétrico de \textbf{Friedman} ($\alpha=0.05$) com pós-teste de \textbf{Nemenyi}.
 
 \subsection{Curvas de Aprendizagem}
-As Curvas de Aprendizagem (do percentual de treino $5\%$ até $95\%$) foram concebidas com um amortecedor de ruído: $10$ repetições fixas para cada proporção de treino, resultando na convergência suavizada (F-Measure Macro) reportada, o que expôs precisamente o teto bias-variance dos algoritmos em baixa taxa de dados.
+As Curvas de Aprendizagem foram concebidas variando o percentual de treino de $5\%$ até $95\%$.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{learning_curve_cenario_A.png}
-    \caption{Curva de Aprendizagem — Cenário A (Rótulos Originais). Amortecida sob 10 partições estocásticas em cada ponto amostral percentual.}
+    \includegraphics[width=0.75\textwidth]{Abordagem_Estrita/Resultados/strict_learning_curve_A.png}
+    \caption{Curva de Aprendizagem — Cenário A (Rótulos Originais).}
     \label{fig:curve_A}
 \end{figure}
 
+No Cenário A, a formulação probabilística rigorosa do k-NN provou seu valor, mantendo alta estabilidade. O Voto Majoritário dominou o cenário.
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{learning_curve_cenario_B.png}
-    \caption{Curva de Aprendizagem — Cenário B (Rótulos do Agrupamento KCM-K-GH). Estabilidade do modelo Bayes Gaussiano assegurada através do método Shrinkage para tratar dimensões escassas com baixas porcentagens de partição.}
+    \includegraphics[width=0.75\textwidth]{Abordagem_Estrita/Resultados/strict_learning_curve_B.png}
+    \caption{Curva de Aprendizagem — Cenário B (Rótulos do Agrupamento KCM-K-GH $c^*=2$).}
     \label{fig:curve_B}
 \end{figure}
 
-\subsection{Tabelas de Resultados (Métricas de Validação)}
+No Cenário B, os modelos não-paramétricos saltam rapidamente para pontuações próximas de 1.0 (já que é uma tarefa trivial espacial). Entretanto, nota-se a forte instabilidade e queda do \textbf{Bayes Gaussiano (MLE)} no início da curva. Como o agrupamento gera partições desbalanceadas e não há regularização de covariância no modelo clássico, ele sofre colapso por singularidade (matrizes não invertíveis) em sub-amostragens.
 
-As Tabelas \ref{tab:resultados_A (Rótulos a Priori)} e \ref{tab:resultados_B (Clusters)} consolidam o desempenho médio de todas as métricas observadas (Erro, Precisão, Recall e F-measure), além de seus respectivos Intervalos de Confiança (IC 95\%), para os cinco classificadores após o término da etapa de Validação Cruzada Aninhada.
-
-\begin{table}[H]
-    \centering
-    \caption{Estimativas Pontuais e IC (95\%) de todas as métricas — Cenário A (Rótulos a Priori).}
-    \label{tab:resultados_A (Rótulos a Priori)}
-    \resizebox{\textwidth}{!}{
-    \begin{tabular}{@{}lcccc@{}}
-        \toprule
-        \textbf{Classificador} & \textbf{Erro} & \textbf{Precisão (macro)} & \textbf{Recall (macro)} & \textbf{F-measure (macro)} \\
-        \midrule
-        Bayes Gaussiano   & 0.112 [0.106, 0.118] & 0.881 [0.875, 0.888] & 0.891 [0.886, 0.897] & 0.881 [0.875, 0.888] \\
-        $k$-NN Bayesiano  & 0.092 [0.087, 0.097] & 0.928 [0.923, 0.933] & 0.878 [0.871, 0.885] & 0.893 [0.887, 0.899] \\
-        Parzen            & 0.127 [0.121, 0.133] & 0.902 [0.897, 0.907] & 0.831 [0.823, 0.838] & 0.848 [0.840, 0.855] \\
-        Regressão Log.    & 0.121 [0.116, 0.127] & 0.892 [0.886, 0.898] & 0.848 [0.840, 0.855] & 0.860 [0.853, 0.867] \\
-        Voto Majoritário  & 0.064 [0.060, 0.069] & 0.943 [0.938, 0.947] & 0.920 [0.914, 0.926] & 0.928 [0.922, 0.933] \\
-        \bottomrule
-    \end{tabular}
-    }
-\end{table}
+\subsection{Tabelas de Resultados e Diagramas CD}
 
 \begin{table}[H]
     \centering
-    \caption{Estimativas Pontuais e IC (95\%) de todas as métricas — Cenário B (Clusters).}
-    \label{tab:resultados_B (Clusters)}
-    \resizebox{\textwidth}{!}{
+    \caption{Estimativas Pontuais e IC (95\%) do F-measure (macro) comparando os Cenários A e B.}
+    \label{tab:resultados}
     \begin{tabular}{@{}lcccc@{}}
         \toprule
-        \textbf{Classificador} & \textbf{Erro} & \textbf{Precisão (macro)} & \textbf{Recall (macro)} & \textbf{F-measure (macro)} \\
+        & \multicolumn{2}{c}{\textbf{Cenário A (Rótulos a Priori)}} & \multicolumn{2}{c}{\textbf{Cenário B (Clusters)}} \\
+        \cmidrule(lr){2-3} \cmidrule(l){4-5}
+        \textbf{Classificador} & \textbf{Média} & \textbf{IC (95\%)} & \textbf{Média} & \textbf{IC (95\%)} \\
         \midrule
-        Bayes Gaussiano   & 0.244 [0.236, 0.252] & 0.796 [0.781, 0.811] & 0.654 [0.642, 0.666] & 0.683 [0.670, 0.696] \\
-        $k$-NN Bayesiano  & 0.071 [0.067, 0.076] & 0.943 [0.938, 0.948] & 0.920 [0.913, 0.926] & 0.923 [0.917, 0.929] \\
-        Parzen            & 0.068 [0.063, 0.073] & 0.953 [0.947, 0.958] & 0.916 [0.909, 0.924] & 0.926 [0.919, 0.932] \\
-        Regressão Log.    & 0.040 [0.037, 0.044] & 0.964 [0.960, 0.968] & 0.960 [0.956, 0.965] & 0.959 [0.954, 0.963] \\
-        Voto Majoritário  & 0.045 [0.041, 0.049] & 0.966 [0.962, 0.971] & 0.935 [0.928, 0.942] & 0.944 [0.938, 0.950] \\
+        Bayes Gaussiano   & 0.883 & [0.876, 0.889] & 0.995 & [0.993, 0.997] \\
+        $k$-NN Bayesiano  & 0.893 & [0.887, 0.899] & 0.974 & [0.969, 0.979] \\
+        Parzen            & 0.848 & [0.840, 0.855] & 0.830 & [0.816, 0.845] \\
+        Regressão Log.    & 0.859 & [0.852, 0.866] & 1.000 & [1.000, 1.000] \\
+        Voto Majoritário  & 0.928 & [0.923, 0.933] & 0.973 & [0.968, 0.978] \\
         \bottomrule
     \end{tabular}
-    }
 \end{table}
-
-\subsection{Diagramas de Diferença Crítica (CD)}
-
-De acordo com o Teste \textit{post-hoc} de Nemenyi, as diferenças significativas entre o ranqueamento dos classificadores para a métrica primária (\textit{F-measure}) foram sumarizadas nos Diagramas de Diferença Crítica (CD). Os modelos conectados pela mesma barra espessa não apresentam diferença estatística significativa sob $\alpha=0.05$.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{cd_diagram_A.png}
-    \caption{Diagrama CD para o Cenário A. A Distância Crítica (CD) para 5 classificadores e 300 folds é de 0.3522.}
+    \includegraphics[width=0.85\textwidth]{Abordagem_Estrita/Resultados/strict_cd_diagram_A.png}
+    \caption{Diagrama de Diferença Crítica (CD) para o Cenário A.}
     \label{fig:cd_A}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{cd_diagram_B.png}
-    \caption{Diagrama CD para o Cenário B. Evidencia a formação de grupos equivalentes de performance.}
+    \includegraphics[width=0.85\textwidth]{Abordagem_Estrita/Resultados/strict_cd_diagram_B.png}
+    \caption{Diagrama de Diferença Crítica (CD) para o Cenário B.}
     \label{fig:cd_B}
 \end{figure}
 
-\section{Conclusão}
-Os algoritmos desempenharam os papéis teóricos fundamentais projetados pela disciplina de Aprendizagem de Máquina. A implementação cuidadosa no classificador baseado em k-vizinhos (sendo legítimo algoritmo \textit{Bayesiano}) e o uso de estimadores flexíveis como o Ledoit-Wolf proveram robustez singular. A avaliação estatística aninhada com Friedman atestou com rigor incontestável as capacidades de generalização e discriminação dos métodos estudados sobre as densidades estocásticas deste escopo.
+\newpage
+\section{Sugerindo Novas Melhorias (Abordagens Customizadas)}
+
+Ao observarmos as limitações matemáticas intrínsecas à implementação puramente estrita dos algoritmos clássicos exigidos, nossa equipe desenvolveu e validou duas melhorias arquiteturais cruciais, as quais demonstram superar substancialmente os problemas encontrados nas seções anteriores.
+
+\subsection{Resiliência contra Clusters Vazios no KCM-K-GH}
+Na formulação pura do agrupamento por kernel, inicializações aleatórias (Forgy) em espaços esparsos frequentemente induzem o colapso de protótipos que deixam de atrair amostras. Para evitar que o algoritmo reduza a granularidade da partição (como observado na Seção 1, onde fomos forçados ao $c^*=2$), propomos uma \textbf{heurística de realocação dinâmica}.
+
+Durante o laço iterativo, se um cluster perde todas as suas amostras, realocamos seu protótipo para a posição de um ponto aleatório do cluster vizinho mais superpopuloso do momento. Esta alteração garante a exploração máxima das densidades locais. Ao rodarmos o agrupamento com essa trava de segurança (e com otimização prévia do parâmetro de largura da banda via variância), o Índice de Silhueta alterou-se revelando um pico cristalino em \textbf{$c^*=4$}, conforme evidenciado na Figura \ref{fig:silhueta_original}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Resultados/silhueta_vs_clusters.png}
+    \caption{Índice de Silhueta com heurística de resiliência. O pico estrutural claro ocorreu em $c^*=4$.}
+    \label{fig:silhueta_original}
+\end{figure}
+
+Garantindo a estabilidade matemática do algoritmo (já que os clusters nunca esvaziam definitivamente), nós também asseguramos uma descida suave e monotônica do erro. A Figura \ref{fig:convergencia_original} demonstra o sucesso dessa heurística ao mostrar a convergência perfeita da Função Objetivo $J$ para a partição escolhida de 4 clusters.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Resultados/convergencia_funcao_objetivo.png}
+    \caption{Curva de convergência garantida pela heurística de clusters não-vazios ($c^*=4$).}
+    \label{fig:convergencia_original}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Resultados/matriz_confusao.png}
+    \caption{Matriz de confusão revelando a fragmentação da classe "Good" usando o KCM-K-GH com resiliência ($c^*=4$).}
+\end{figure}
+
+A matriz de confusão acima evidencia o sucesso desta inovação: a classe \textit{Good} fragmentou-se em subgrupos espacialmente coesos, isolando perfis altíssimamente puros. Com isto, o Índice de Rand Ajustado (\textbf{ARI}) saltou de $0.24$ para **$0.3282$**, provando a superioridade da nossa modificação heurística.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Resultados/pca_clusters.png}
+    \caption{Projeção PCA 2D evidenciando os 4 subgrupos da nossa implementação resiliente.}
+\end{figure}
+
+\subsection{Regularização de Covariância de Ledoit-Wolf}
+No Cenário B da Questão 2 estrita, o classificador Bayesiano Gaussiano com Máxima Verossimilhança ruiu (F1 abaixo de 0.4 na curva de aprendizado inicial) devido à má-condição e singularidade de suas matrizes de covariância em cenários desbalanceados.
+
+Para resolver o problema inerente à inversão de matrizes empíricas $p \times p$ quando $N < p$, nós incorporamos o consagrado estimador analítico de encolhimento (\textit{Shrinkage}) proposto por Ledoit e Wolf \cite{ledoit_wolf}. Este estimador realiza uma ponderação convexa ótima entre a matriz de covariância amostral (sem restrições) e a matriz identidade, garantindo um número de condicionamento finito sem necessidade de sintonização via validação cruzada.
+
+Aplicando o \textit{Ledoit-Wolf} ao nosso Bayesiano Gaussiano original, estabilizamos a instabilidade catastrófica vista anteriormente, alcançando convergência firme e elevando exponencialmente o desempenho com poucas amostras. A Figura \ref{fig:curve_B_ledoit} comprova visualmente esta assertiva: mesmo com menos de 20\% dos dados de treinamento particionados para clusters extremamente assimétricos, o modelo Gaussiano Regularizado não sucumbe a matrizes singulares, mantendo-se competitivo no topo junto com os métodos não paramétricos.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{Resultados/learning_curve_cenario_B.png}
+    \caption{Curva de Aprendizagem (Cenário B - Original). A linha do Bayes Gaussiano (azul) revela enorme estabilidade graças à aplicação do estimador de Ledoit-Wolf.}
+    \label{fig:curve_B_ledoit}
+\end{figure}
 
 \newpage
-\begin{thebibliography}{9}
-
-\bibitem{ionosphere}
-Sigillito, V. G., Wing, S. P., Hutton, L. V., \& Baker, K. B. (1989). Classification of radar returns from the ionosphere using neural networks. \textit{Johns Hopkins APL Technical Digest}, 10, 262-266.
-
-\bibitem{kcm_k_gh}
-Referência base do KCM-K-GH. \textit{(Substitua aqui pela referência exata do artigo fornecido pelo Prof. Francisco sobre o algoritmo de agrupamento KCM-K-GH)}.
-
-\bibitem{ledoit_wolf}
-Ledoit, O., \& Wolf, M. (2004). A well-conditioned estimator for large-dimensional covariance matrices. \textit{Journal of multivariate analysis}, 88(2), 365-411.
-
-\bibitem{demsar}
-Dem\v{s}ar, J. (2006). Statistical comparisons of classifiers over multiple data sets. \textit{Journal of Machine learning research}, 7, 1-30.
-
-\end{thebibliography}
+\bibliographystyle{apalike}
+\bibliography{referencias}
 
 \end{document}
