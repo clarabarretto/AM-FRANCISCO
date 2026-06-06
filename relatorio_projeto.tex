@@ -54,7 +54,7 @@ A definição estrita de $c^*$ baseou-se na maximização do \textbf{Índice de 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{Abordagem_Estrita/Resultados/strict_silhouette_bars.png}
+    \includegraphics[width=0.7\textwidth]{strict_silhouette_bars.png}
     \caption{Gráfico do Índice de Silhueta versus o número de clusters $c$. O pico máximo determinou a escolha de $c^* = 2$.}
     \label{fig:silhueta}
 \end{figure}
@@ -64,7 +64,7 @@ Utilizando $c^* = 2$, comparamos a partição obtida com as classes \textit{a pr
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{Abordagem_Estrita/Resultados/strict_cm_c2.png}
+    \includegraphics[width=0.7\textwidth]{strict_cm_c2.png}
     \caption{Matriz de confusão cruzando as classes a priori com os clusters encontrados.}
     \label{fig:matriz_confusao}
 \end{figure}
@@ -77,7 +77,7 @@ Para corroborar a matriz de confusão e demonstrar o arranjo geométrico dos gru
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{Abordagem_Estrita/Resultados/strict_pca_c2.png}
+    \includegraphics[width=0.85\textwidth]{strict_pca_c2.png}
     \caption{Projeção PCA 2D coloridas pelos clusters formados pelo algoritmo KCM-K-GH ($c^* = 2$).}
     \label{fig:pca_clusters}
 \end{figure}
@@ -109,7 +109,7 @@ As Curvas de Aprendizagem foram concebidas variando o percentual de treino de $5
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{Abordagem_Estrita/Resultados/strict_learning_curve_A.png}
+    \includegraphics[width=0.75\textwidth]{strict_learning_curve_A.png}
     \caption{Curva de Aprendizagem — Cenário A (Rótulos Originais).}
     \label{fig:curve_A}
 \end{figure}
@@ -118,7 +118,7 @@ No Cenário A, a formulação probabilística rigorosa do k-NN provou seu valor,
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{Abordagem_Estrita/Resultados/strict_learning_curve_B.png}
+    \includegraphics[width=0.75\textwidth]{strict_learning_curve_B.png}
     \caption{Curva de Aprendizagem — Cenário B (Rótulos do Agrupamento KCM-K-GH $c^*=2$).}
     \label{fig:curve_B}
 \end{figure}
@@ -148,14 +148,14 @@ No Cenário B, os modelos não-paramétricos saltam rapidamente para pontuaçõe
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{Abordagem_Estrita/Resultados/strict_cd_diagram_A.png}
+    \includegraphics[width=0.85\textwidth]{strict_cd_diagram_A.png}
     \caption{Diagrama de Diferença Crítica (CD) para o Cenário A.}
     \label{fig:cd_A}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{Abordagem_Estrita/Resultados/strict_cd_diagram_B.png}
+    \includegraphics[width=0.85\textwidth]{strict_cd_diagram_B.png}
     \caption{Diagrama de Diferença Crítica (CD) para o Cenário B.}
     \label{fig:cd_B}
 \end{figure}
@@ -172,7 +172,7 @@ Durante o laço iterativo, se um cluster perde todas as suas amostras, realocamo
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{Resultados/silhueta_vs_clusters.png}
+    \includegraphics[width=0.7\textwidth]{silhueta_vs_clusters.png}
     \caption{Índice de Silhueta com heurística de resiliência. O pico estrutural claro ocorreu em $c^*=4$.}
     \label{fig:silhueta_original}
 \end{figure}
@@ -181,14 +181,14 @@ Garantindo a estabilidade matemática do algoritmo (já que os clusters nunca es
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{Resultados/convergencia_funcao_objetivo.png}
+    \includegraphics[width=0.7\textwidth]{convergencia_funcao_objetivo.png}
     \caption{Curva de convergência garantida pela heurística de clusters não-vazios ($c^*=4$).}
     \label{fig:convergencia_original}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{Resultados/matriz_confusao.png}
+    \includegraphics[width=0.7\textwidth]{matriz_confusao.png}
     \caption{Matriz de confusão revelando a fragmentação da classe "Good" usando o KCM-K-GH com resiliência ($c^*=4$).}
 \end{figure}
 
@@ -196,7 +196,7 @@ A matriz de confusão acima evidencia o sucesso desta inovação: a classe \text
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Resultados/pca_clusters.png}
+    \includegraphics[width=0.8\textwidth]{pca_clusters.png}
     \caption{Projeção PCA 2D evidenciando os 4 subgrupos da nossa implementação resiliente.}
 \end{figure}
 
@@ -209,7 +209,7 @@ Aplicando o \textit{Ledoit-Wolf} ao nosso Bayesiano Gaussiano original, estabili
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{Resultados/learning_curve_cenario_B.png}
+    \includegraphics[width=0.75\textwidth]{learning_curve_cenario_B.png}
     \caption{Curva de Aprendizagem (Cenário B - Original). A linha do Bayes Gaussiano (azul) revela enorme estabilidade graças à aplicação do estimador de Ledoit-Wolf.}
     \label{fig:curve_B_ledoit}
 \end{figure}
