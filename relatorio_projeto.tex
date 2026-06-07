@@ -10,7 +10,8 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{caption}
 \usepackage{subcaption}
-
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 \geometry{top=3cm, bottom=2cm, left=3cm, right=2cm}
 
 \title{\textbf{Relatório do Projeto: Aprendizagem de Máquina}\\ \large Agrupamento KCM-K-GH e Classificação Bayesiana (Dataset Ionosphere)}
@@ -194,18 +195,24 @@ Na formulação pura do agrupamento por kernel, inicializações aleatórias (Fo
 
 Durante o laço iterativo, se um cluster perde todas as suas amostras, realocamos seu protótipo para a posição de um ponto aleatório do cluster vizinho mais superpopuloso do momento. Esta alteração garante a exploração máxima das densidades locais. O procedimento é sumarizado no pseudocódigo abaixo:
 
-\vspace{0.3cm}
-\noindent\textbf{Pseudocódigo da Heurística de Resiliência:}
-\begin{quote}
-\textbf{Entrada:} Rótulos atuais $L$, Protótipos $G$, Matriz de Dados $X$, Número de Clusters $c$. \\
-\textbf{Passo 1:} Para cada cluster $i \in \{1 \dots c\}$, calcule o tamanho $N_i = \sum_{k} (L_k == i)$. \\
-\textbf{Passo 2:} Identifique o cluster mais populoso: $i_{max} = \arg\max_j N_j$. \\
-\textbf{Passo 3:} Verifique se existe algum cluster $e$ tal que $N_e = 0$ (cluster vazio): \\
-\indent a) Se sim, sorteie aleatoriamente uma amostra $x_k$ pertencente ao cluster $i_{max}$. \\
-\indent b) Atribua esta amostra como o novo protótipo do cluster vazio: $g_e \leftarrow x_k$. \\
-\textbf{Saída:} Protótipos atualizados $G$.
-\end{quote}
-\vspace{0.3cm}
+\begin{algorithm}[H]
+\caption{Heurística de Realocação Dinâmica (Resiliência contra Clusters Vazios)}
+\label{alg:resiliencia}
+\begin{algorithmic}[1]
+\Require Rótulos atuais $L$, Protótipos $G$, Matriz de Dados $X$, Número de Clusters $c$
+\State Calcule o tamanho de cada cluster: $N_i = \sum_{k=1}^n \mathbb{I}(L_k = i), \quad \forall i \in \{1 \dots c\}$
+\State Identifique o cluster mais populoso: $i_{max} = \arg\max_j N_j$
+\For{cada cluster $e \in \{1 \dots c\}$}
+    \If{$N_e = 0$} \Comment{Detecção de cluster vazio}
+        \State Sorteie aleatoriamente uma amostra $x_k$ tal que $L_k = i_{max}$
+        \State $g_e \leftarrow x_k$ \Comment{Realoca protótipo para a amostra sorteada}
+        \State $N_{i_{max}} \leftarrow N_{i_{max}} - 1$
+        \State $N_e \leftarrow 1$
+    \EndIf
+\EndFor
+\Ensure Matriz de protótipos atualizada $G$
+\end{algorithmic}
+\end{algorithm}
 
 Ao rodarmos o agrupamento com essa trava de segurança (e com otimização prévia do parâmetro de largura da banda via variância), o Índice de Silhueta alterou-se revelando um pico cristalino em \textbf{$c^*=4$}, conforme evidenciado na Figura \ref{fig:silhueta_original}.
 
