@@ -187,6 +187,11 @@ Adicionalmente, além do fenômeno de \textit{overfitting} em baixas amostragens
     \label{fig:cd_B}
 \end{figure}
 
+Analisando a Tabela \ref{tab:resultados}, observa-se que no \textbf{Cenário A} o modelo de \textbf{Voto Majoritário} consagra-se como o melhor classificador ($F1 = 0.928$), provando matematicamente que a agregação de decisões independentes reduz a variância do erro. Por outro lado, no \textbf{Cenário B}, o desempenho de quase todos os classificadores dispara, com a \textbf{Regressão Logística} atingindo o limite perfeito de $1.000$. Esse salto ocorre pois prever os rótulos gerados artificialmente pelo KCM-K-GH equivale a encontrar fronteiras puramente geométricas e determinísticas, uma tarefa trivial para separadores lineares paramétricos. 
+
+Os \textbf{Diagramas de Diferença Crítica (CD)} chancelam essas constatações sob rigor estatístico. Nesses diagramas, os algoritmos são ordenados pelo seu posto (rank médio), onde os melhores estão mais à esquerda (menor rank). A interpretação central do Teste de Nemenyi reside nas grossas barras horizontais: classificadores conectados pela mesma barra \textbf{não possuem diferença estatística significativa} entre si. No Cenário A (Figura \ref{fig:cd_A}), o Voto Majoritário aparece estatisticamente isolado em primeiro lugar (sem barras ligando-o aos demais), comprovando sua supremacia absoluta. Já no Cenário B (Figura \ref{fig:cd_B}), a Regressão Logística e o Bayes Gaussiano dividem a liderança estatística (ambos conectados), indicando que os dois resolveram perfeitamente o problema de separação espacial do agrupamento.
+
+
 \newpage
 \section{Sugerindo Novas Melhorias (Abordagens Customizadas)}
 
