@@ -148,7 +148,9 @@ No Cenário A, a formulação probabilística rigorosa do k-NN provou seu valor,
     \label{fig:curve_B}
 \end{figure}
 
-No Cenário B, os modelos não-paramétricos saltam rapidamente para pontuações próximas de 1.0 (já que é uma tarefa trivial espacial). Entretanto, nota-se a forte instabilidade e queda do \textbf{Bayes Gaussiano (MLE)} no início da curva. Como o agrupamento gera partições desbalanceadas e não há regularização de covariância no modelo clássico, ele sofre colapso por singularidade (matrizes não invertíveis) em sub-amostragens.
+No Cenário B, os modelos saltam rapidamente para pontuações próximas de 1.0. Analisando o comportamento de sobreajuste (\textit{overfitting}), é notório que, com poucas proporções de dados (à esquerda do gráfico), quatro dos cinco modelos "decoram" perfeitamente o conjunto de treinamento, alcançando o teto máximo da métrica ($F1 = 1.0$, resultando nas linhas pontilhadas de treino totalmente sobrepostas no topo do gráfico). Ao mesmo tempo, o desempenho preditivo nos dados invisíveis (linhas sólidas de teste) inicia-se em patamares baixos, evidenciando o memorismo. Contudo, à medida que o volume de treinamento avança para 95\%, as linhas sólidas de teste sobem agressivamente e convergem com as linhas pontilhadas, sinalizando que a adição de dados cura o \textit{overfitting} e permite a generalização perfeita da fronteira linear-trivial gerada pelo KCM-K-GH.
+
+Adicionalmente, além do fenômeno de \textit{overfitting} em baixas amostragens, nota-se a forte instabilidade e queda isolada do \textbf{Bayes Gaussiano (MLE)} no início da curva de teste. Como o agrupamento matemático impôs partições desbalanceadas e não há regularização de covariância no modelo paramétrico clássico, este sofre colapso algébrico por singularidade (matrizes não invertíveis) durante as sub-amostragens iniciais.
 
 \subsection{Tabelas de Resultados e Diagramas CD}
 
