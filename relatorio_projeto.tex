@@ -75,7 +75,7 @@ Estas três etapas compõem o laço principal do algoritmo e garantem uma reduç
 \subsection{Escolha do Número Ótimo de Clusters ($c^*$)}
 Para determinar a partição ótima e o número de clusters $c^*$, o algoritmo foi executado para valores de $c \in \{2, 3, 4, 5, 6\}$. Devido à natureza estocástica da inicialização de Forgy, cada $c$ foi testado com 100 execuções independentes, capturando a partição que minimizou a função objetivo $J$ para aquele $c$.
 
-A definição de $c^*$ baseou-se na maximização do \textbf{Índice de Silhueta}. Como a inicialização é aleatória, a estrutura do conjunto de dados se mostrou altamente instável para partições muito granulares, forçando o algoritmo a escolher a partição mais macroscópica. Conforme exibido na Figura \ref{fig:silhueta}, o maior valor de Silhueta ocorreu inequivocamente para $c^* = 2$.
+A definição de $c^*$ baseou-se na maximização do \textbf{Índice de Silhueta}. Como a inicialização é aleatória, a distribuição das amostras revelou-se inconsistente ao forçar múltiplas partições menores, levando o algoritmo a convergir de forma mais robusta para a configuração binária mais abrangente. Conforme exibido na Figura \ref{fig:silhueta}, o maior valor de Silhueta ocorreu inequivocamente para $c^* = 2$.
 
 \begin{figure}[H]
     \centering
