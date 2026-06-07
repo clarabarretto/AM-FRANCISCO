@@ -45,7 +45,31 @@ onde $u_{ik} \in \{0, 1\}$ indica o grau de pertinência rígida da amostra $x_k
 
 sendo $p$ a dimensão dos dados (número de \textit{features}) e $g_i$ o protótipo do cluster $i$.
 
-O código foi implementado com extrema fidelidade às equações de atualização algébricas descritas pela literatura base. A cada iteração, os parâmetros são atualizados de forma minimizadora em três etapas sequenciais (Atribuição, Atualização dos Protótipos e Ajuste dos Pesos).
+O código foi implementado com extrema fidelidade às equações de atualização algébricas descritas pela literatura base. Partindo de uma inicialização aleatória dos protótipos e de pesos homogêneos correspondentes à variância global ($s_j = \sqrt{\text{Var}(X_j)}$), o algoritmo itera até a convergência das atribuições através de três passos de otimização inter-dependentes:
+
+\begin{enumerate}
+    \item \textbf{Atribuição das Amostras}: Mantendo os protótipos e parâmetros de largura fixos, cada amostra $x_k$ é alocada ao cluster cujo protótipo $g_i$ maximize a similaridade de Kernel, minimizando assim a distância no espaço transformado. A regra de atribuição rígida é dada por:
+    \begin{equation}
+        u_{ik} = 
+        \begin{cases} 
+            1, & \text{se } i = \arg\max_{1 \le l \le c} K(x_k, g_l) \\
+            0, & \text{caso contrário}
+        \end{cases}
+    \end{equation}
+    Em caso de empates na similaridade, a amostra é alocada ao cluster com o menor índice.
+
+    \item \textbf{Atualização dos Protótipos}: Com as pertinências $u_{ik}$ e pesos globais fixados, cada protótipo $g_i$ é recalculado como o centro de massa ponderado pelas similaridades de Kernel das amostras pertencentes ao seu respectivo grupo:
+    \begin{equation}
+        g_i = \frac{\sum_{k=1}^n u_{ik} K(x_k, g_i) x_k}{\sum_{k=1}^n u_{ik} K(x_k, g_i)}
+    \end{equation}
+    
+    \item \textbf{Ajuste dos Parâmetros de Largura (Pesos Globais)}: Para capturar a variância intrínseca dos dados ao longo das dimensões de forma global (assumindo $\gamma = 1$), os parâmetros de largura $s_j^2$ correspondentes a cada variável $j$ são atualizados iterativamente com base na dispersão ponderada das amostras em relação aos protótipos correspondentes:
+    \begin{equation}
+        s_j^2 = \frac{\sum_{i=1}^c \sum_{k=1}^n u_{ik} K(x_k, g_i) (x_{kj} - g_{ij})^2}{\sum_{i=1}^c \sum_{k=1}^n u_{ik} K(x_k, g_i)}
+    \end{equation}
+\end{enumerate}
+
+Estas três etapas compõem o laço principal do algoritmo e garantem uma redução monotônica da função objetivo $J$ a cada iteração. O laço repete-se até que os vetores de pertinência $u_{ik}$ se estabilizem perfeitamente em duas iterações consecutivas, caracterizando a convergência firme a um ótimo local.
 
 \subsection{Escolha do Número Ótimo de Clusters ($c^*$)}
 Para determinar a partição ótima e o número de clusters $c^*$, o algoritmo foi executado para valores de $c \in \{2, 3, 4, 5, 6\}$. Devido à natureza estocástica da inicialização de Forgy, cada $c$ foi testado com 100 execuções independentes, capturando a partição que minimizou a função objetivo $J$ para aquele $c$.
@@ -168,7 +192,22 @@ Ao observarmos as limitações matemáticas intrínsecas à implementação dos 
 \subsection{Resiliência contra Clusters Vazios no KCM-K-GH}
 Na formulação pura do agrupamento por kernel, inicializações aleatórias (Forgy) em espaços esparsos frequentemente induzem o colapso de protótipos que deixam de atrair amostras. Para evitar que o algoritmo reduza a granularidade da partição (como observado na Seção 1, onde fomos forçados ao $c^*=2$), propomos uma \textbf{heurística de realocação dinâmica}.
 
-Durante o laço iterativo, se um cluster perde todas as suas amostras, realocamos seu protótipo para a posição de um ponto aleatório do cluster vizinho mais superpopuloso do momento. Esta alteração garante a exploração máxima das densidades locais. Ao rodarmos o agrupamento com essa trava de segurança (e com otimização prévia do parâmetro de largura da banda via variância), o Índice de Silhueta alterou-se revelando um pico cristalino em \textbf{$c^*=4$}, conforme evidenciado na Figura \ref{fig:silhueta_original}.
+Durante o laço iterativo, se um cluster perde todas as suas amostras, realocamos seu protótipo para a posição de um ponto aleatório do cluster vizinho mais superpopuloso do momento. Esta alteração garante a exploração máxima das densidades locais. O procedimento é sumarizado no pseudocódigo abaixo:
+
+\vspace{0.3cm}
+\noindent\textbf{Pseudocódigo da Heurística de Resiliência:}
+\begin{quote}
+\textbf{Entrada:} Rótulos atuais $L$, Protótipos $G$, Matriz de Dados $X$, Número de Clusters $c$. \\
+\textbf{Passo 1:} Para cada cluster $i \in \{1 \dots c\}$, calcule o tamanho $N_i = \sum_{k} (L_k == i)$. \\
+\textbf{Passo 2:} Identifique o cluster mais populoso: $i_{max} = \arg\max_j N_j$. \\
+\textbf{Passo 3:} Verifique se existe algum cluster $e$ tal que $N_e = 0$ (cluster vazio): \\
+\indent a) Se sim, sorteie aleatoriamente uma amostra $x_k$ pertencente ao cluster $i_{max}$. \\
+\indent b) Atribua esta amostra como o novo protótipo do cluster vazio: $g_e \leftarrow x_k$. \\
+\textbf{Saída:} Protótipos atualizados $G$.
+\end{quote}
+\vspace{0.3cm}
+
+Ao rodarmos o agrupamento com essa trava de segurança (e com otimização prévia do parâmetro de largura da banda via variância), o Índice de Silhueta alterou-se revelando um pico cristalino em \textbf{$c^*=4$}, conforme evidenciado na Figura \ref{fig:silhueta_original}.
 
 \begin{figure}[H]
     \centering
@@ -192,7 +231,7 @@ Garantindo a estabilidade matemática do algoritmo (já que os clusters nunca es
     \caption{Matriz de confusão revelando a fragmentação da classe "Good" usando o KCM-K-GH com resiliência ($c^*=4$).}
 \end{figure}
 
-A matriz de confusão acima evidencia o sucesso desta inovação: a classe \textit{Good} fragmentou-se em subgrupos espacialmente coesos, isolando perfis altíssimamente puros. Com isto, o Índice de Rand Ajustado (\textbf{ARI}) saltou de $0.24$ para **$0.3282$**, provando a superioridade da nossa modificação heurística.
+A matriz de confusão acima evidencia o sucesso desta inovação: a classe \textit{Good} fragmentou-se em subgrupos espacialmente coesos, isolando perfis altíssimamente puros. Com isto, o Índice de Rand Ajustado (\textbf{ARI}) saltou de $0.24$ para \textbf{0.3282}, provando a superioridade da nossa modificação heurística.
 
 \begin{figure}[H]
     \centering
