@@ -126,7 +126,15 @@ Para a segunda etapa do projeto, foi requisitado o desenvolvimento e a comparaç
 \end{itemize}
 
 \subsection{Metodologia Experimental e Busca de Hiperparâmetros}
-O ambiente avaliativo baseou-se em Validação Cruzada Aninhada (Nested CV) rigorosa ($10$ Folds $\times$ $30$ Repetições $= 300$ amostras estatísticas). No laço interno, utilizou-se \textit{GridSearch} com $5$-folds para otimização dos métodos não-paramétricos.
+O ambiente avaliativo baseou-se em uma rigorosa Validação Cruzada Aninhada (\textit{Nested Cross-Validation}) com $10$ \textit{folds} e $30$ repetições independentes no laço externo, totalizando 300 amostras estatísticas para a extração não-viesada de desempenho preditivo. A fim de evitar qualquer vazamento de dados (\textit{data leakage}), a otimização dos hiperparâmetros de cada modelo foi estritamente isolada no laço interno, utilizando um \textit{GridSearch} exaustivo particionado em $5$ \textit{folds} em cima dos dados de treino.
+
+A grade de busca de hiperparâmetros (\textit{param\_grid}) explorada parametricamente no laço interno contemplou os seguintes espaços:
+\begin{itemize}
+    \item \textbf{$k$-NN Bayesiano}: Número de vizinhos $k \in \{1, 3, 5, 7, 9\}$ e métrica de distância $L_p \in \{\text{Euclidiana}, \text{Manhattan}, \text{Chebyshev}\}$.
+    \item \textbf{Janela de Parzen}: Largura do \textit{Kernel} (\textit{bandwidth} $h$) $\in \{0.1, 0.3, 0.5, 1.0\}$.
+    \item \textbf{Regressão Logística}: Inverso da força de regularização $C \in \{0.1, 1.0, 10.0\}$.
+\end{itemize}
+O Classificador Bayesiano Gaussiano Clássico foi ajustado analiticamente por MLE, não necessitando de varredura heurística.
 Os experimentos foram aplicados sobre dois cenários de aprendizado: \textbf{Cenário A} (Classes a priori binárias) e \textbf{Cenário B} (Rótulos do Agrupamento $c^*=2$). Todas as análises seguiram o Teste Não-paramétrico de \textbf{Friedman} ($\alpha=0.05$) com pós-teste de \textbf{Nemenyi}.
 
 \subsection{Curvas de Aprendizagem}
