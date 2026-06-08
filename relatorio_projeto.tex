@@ -23,7 +23,7 @@
 \maketitle
 
 \begin{abstract}
-Este relatório detalha as metodologias e implementações desenvolvidas para o projeto da disciplina de Aprendizagem de Máquina, seguindo rigorosamente as definições propostas na literatura base e nas orientações do professor. A primeira etapa consistiu no agrupamento das amostras do conjunto de dados \textit{Ionosphere} utilizando o algoritmo \textit{Gaussian kernel c-means hard clustering} (KCM-K-GH) com inicialização aleatória e padronização Z-score, determinando o número ótimo de clusters ($c^*=2$) via Índice de Silhueta. A segunda etapa focou na avaliação rigorosa de cinco classificadores (Bayes Gaussiano com Máxima Verossimilhança pura, kNN Bayesiano probabilístico, Parzen, Regressão Logística e Voto Majoritário) por meio de validação cruzada aninhada repetida ($30 \times 10$-folds) nos cenários originais e derivados do agrupamento. Ao final, é apresentada uma seção adicional propondo melhorias arquiteturais originais sobre os métodos clássicos, como tratamento de resiliência e regularização \textit{Ledoit-Wolf}.
+Este trabalho apresenta a implementação e avaliação de métodos de agrupamento e classificação aplicados à base de dados \textit{Ionosphere}. Na etapa de agrupamento, utilizou-se o algoritmo KCM-K-GH, com determinação do número de partições via Índice de Silhueta. Na etapa de classificação, avaliaram-se cinco modelos: Bayes Gaussiano (MLE), $k$-NN Bayesiano, Janela de Parzen, Regressão Logística e Comitê de Voto Majoritário. O desempenho preditivo foi mensurado em dois cenários (rótulos a priori e rótulos gerados pelo agrupamento) utilizando validação cruzada aninhada, seguida dos testes estatísticos de Friedman e Nemenyi. Por fim, propõem-se adequações algébricas para as falhas observadas na formulação clássica dos algoritmos em cenários desbalanceados, empregando tratamento computacional para partições vazias e regularização de matrizes de covariância via estimador de Ledoit-Wolf.
 \end{abstract}
 
 \tableofcontents
@@ -147,7 +147,7 @@ As Curvas de Aprendizagem foram concebidas variando o percentual de treino de $5
     \label{fig:curve_A}
 \end{figure}
 
-No Cenário A, a formulação probabilística rigorosa do k-NN provou seu valor, mantendo alta estabilidade. O Voto Majoritário dominou o cenário.
+A análise gráfica do \textbf{Cenário A} revela a complexidade inerente da distribuição real dos dados. Com poucas amostras de treinamento ($5\%$ a $20\%$), todos os classificadores apresentam oscilações ou desempenho preditivo reduzido (abaixo de $0.80$), refletindo a dificuldade de generalizar as fronteiras sobrepostas da base \textit{Ionosphere} original. À medida que o volume de dados cresce, observa-se uma clara hierarquia de convergência. A formulação probabilística rigorosa do \textbf{$k$-NN Bayesiano} consolida-se rapidamente de forma extremamente estável, sendo o melhor classificador individual ao longo de toda a curva. A \textbf{Janela de Parzen} e a \textbf{Regressão Logística}, por outro lado, demonstram maior dificuldade de escalar seu desempenho, estabilizando-se em patamares inferiores. Por fim, fica evidente a supremacia do \textbf{Voto Majoritário}, que domina o cenário desde o início e converge para o topo do gráfico, confirmando empiricamente a teoria de redução de variância ao combinar classificadores complementares.
 
 \begin{figure}[H]
     \centering
